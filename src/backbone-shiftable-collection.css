@@ -1,0 +1,49 @@
+.shiftable-collection .shiftable-collection-item {
+  position: relative;
+}
+.shiftable-collection .shiftable-collection-item .action {
+  display: none;
+  position: absolute;
+  font-size: 30px;
+  font-weight: bold;
+  color: #969696;
+  text-decoration: none;
+  padding: 4px 12px;
+}
+.shiftable-collection .shiftable-collection-item .action.delete {
+  right: 0;
+  top: 0;
+}
+.shiftable-collection .shiftable-collection-item .action.delete:hover {
+  color: #600;
+}
+.shiftable-collection .shiftable-collection-item .action.move-left {
+  left: 0;
+  bottom: 0;
+}
+.shiftable-collection .shiftable-collection-item .action.move-left:hover {
+  color: #000;
+}
+.shiftable-collection .shiftable-collection-item .action.move-right {
+  right: 0;
+  bottom: 0;
+}
+.shiftable-collection .shiftable-collection-item .action.move-right:hover {
+  color: #000;
+}
+.shiftable-collection .shiftable-collection-item:hover,
+.shiftable-collection .shiftable-collection-item.selected {
+  cursor: pointer;
+  text-decoration: none;
+  border-color: #46aaf8;
+}
+.shiftable-collection .shiftable-collection-item:hover .action,
+.shiftable-collection .shiftable-collection-item.selected .action {
+  display: block;
+}
+.shiftable-collection :first-child .action.move-left {
+  display: none!important;
+}
+.shiftable-collection :last-child .action.move-right {
+  display: none!important;
+}

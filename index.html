@@ -5,21 +5,31 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-    
+
     <script src="3rd/jquery.min.js" type="text/javascript"></script>
     <script src="3rd/bootstrap.min.js" type="text/javascript"></script>
     <link href="3rd/bootstrap.min.css" rel="stylesheet" type="text/css" charset="utf-8">
-    
+
+    <script src="3rd/bootstrap-datepicker.js" type="text/javascript"></script>
+    <link href="3rd/bootstrap-datepicker.css" rel="stylesheet" type="text/css" charset="utf-8">
+
     <script src="3rd/underscore.js" type="text/javascript"></script>
     <script src="3rd/backbone.js" type="text/javascript"></script>
-    
+
     <script src="src/backbone-form.js" type="text/javascript"></script>
     <script src="src/backbone-modal.js" type="text/javascript"></script>
+
+    <script src="src/backbone-shiftable-collection.js" type="text/javascript"></script>
+    <link href="src/backbone-shiftable-collection.css" rel="stylesheet" type="text/css" charset="utf-8">
+
     <script src="example.js" type="text/javascript"></script>
-    
+
     <style>
       header.navbar-inverse {border-radius: 0;}
       footer.navbar-default {border-radius: 0; margin-bottom: 0;}
+      .shiftable-collection-item {padding: 10px; text-align: center; height: 160px; border: 1px solid #999; margin-right: 10px;}
+      .shiftable-collection-item:hover, .shiftable-collection-item.selected {background-color: #ddd;}
+      .shiftable-collection img {max-width: 100%; max-height: 100px;}
     </style>
   </head>
   <body>
@@ -36,6 +46,7 @@
       <div class="collapse navbar-collapse" id="navbar-collapse">
         <ul class="nav navbar-nav">
           <li><a href="#ModalView">ModalView</a></li>
+          <li><a href="#ShiftableCollectionView">ShiftableCollectionView</a></li>
           <li><a href="#FormView">FormView</a></li>
         </ul>
       </div>
@@ -48,16 +59,19 @@
           <p>
           <ul>
             <li><a href="#ModalView">ModalView</a> creates a <a href="http://backbonejs.org/#View" target="_blank">Backbone View</a> wrapping a <a href="http://getbootstrap.com/javascript/#modals" target="_blank">Bootstrap modal dialog</a>. You can fill in the moal body in the <code>render</code> function.</li>
-            <li><a href="#FormView">FormView</a> creates a <a href="http://backbonejs.org/#View" target="_blank">Backbone View</a> using <a href="http://getbootstrap.com/css/#forms" target="_blank">Bootstrap form</a> markup and styling. Implements bindings to update the <a href="http://backbonejs.org/#Model" target="_blank">Backbone Model</a> based on DOM changes made by the user.</li>
+            <li><a href="#ShiftableCollectionView">ShiftableCollectionView</a> creates a <a href="http://backbonejs.org/#View" target="_blank">Backbone View</a> wrapping a <a href="http://backbonejs.org/#Collection" target="_blank">Backbone Collection</a>. Allows you to shift models left and right to reorder, and to remove models.</li>
+            <li><a href="#FormView">FormView</a> creates a <a href="http://backbonejs.org/#View" target="_blank">Backbone View</a> using <a href="http://getbootstrap.com/css/#forms" target="_blank">Bootstrap form</a> markup and styling. Implements bindings to update the <a href="http://backbonejs.org/#Model" target="_blank">Backbone Model</a> based on DOM changes made by the user. <span class="label label-danger">Deprecated</span> Replaced by <a href="http://amiliaapp.github.io/backform/">Backform</a></li>
           </ul>
         </div>
       </div>
+
+      <!-- Backbone Modal View -->
       <div class="row">
         <div class="col-md-12">
           <h1 id="ModalView">Backbone.ModalView</h1>
           <p>
             A ModalView is a Backbone View which shows a Bootstrap modal dialog upon calling <code>render</code>.
-            After <code>render</code>, a <code>postRender</code> function is always called. You can subclass and implement the <code>postRender</code> function to fill in the body.
+            After <code>render</code>, a <code>postRender</code> function is always called. You can pass <code>postRender</code> as option in the constructor to fill in the body.
           </p>
           <p>
             Use Backbone View <code>events</code> to capture Bootstrap events and put callbacks on buttons. For example:
@@ -70,8 +84,9 @@ events: {
           </p>
           <p>Backbone ModalView supports these options:</p>
           <ul>
-            <li><strong>title</strong>: Optional. HTML to put in the modal header. Defaults to &lt;h3&gt;Info&lt;/h3&gt;.</li>
-            <li><strong>body</strong>: Optional. HTML to put im the modal body. Defaults to an empty string.</li>
+            <li><strong>title</strong>: Optional. Underscore template or plain HTML string to put in the modal header. Defaults to &lt;h3&gt;Info&lt;/h3&gt;.</li>
+            <li><strong>body</strong>: Optional. Underscore template or plain HTML string to put in the modal body. Defaults to an empty string.</li>
+            <li><strong>model</strong>: Optional. Backbone.Model to be passed to the title and body templates. By default it is undefined.</li>
             <li>
               <strong>buttons</strong>: Optional. List of buttons to show. Defaults to a Close button. A button is an anchor tag with Bootstrap class btn. Each button has these options:
               <ul>
@@ -81,6 +96,7 @@ events: {
                 <li><strong>close</strong>: Optional. Boolean indicating whether to close the dialog after the button is pressed. Defaults to false.</li>
               </ul>
             </li>
+            <li><strong>backdrop</strong>: Optional. Specify if backdrop is existing. backdrop option can be boolean or 'static'. Defaults true. 'static' option avoid closing the modal on the click on the backdrop.</li>
           </ul>
         </div>
       </div>
@@ -89,7 +105,13 @@ events: {
           <h2>Examples</h2>
           <button id="btn-1" class="btn btn-primary">Basic modal dialog</button>
           &nbsp;
-          <button id="btn-2" class="btn btn-primary">Subclassed modal dialog</button>
+          <button id="btn-2" class="btn btn-primary">Modal with postRender</button>
+          &nbsp;
+          <button id="btn-3" class="btn btn-primary">Subclassed modal dialog</button>
+          &nbsp;
+          <button id="btn-4" class="btn btn-primary">Static backdrop</button>
+          &nbsp;
+          <button id="btn-5" class="btn btn-primary">Body and Title as templates</button>
         </div>
       </div>
       <div class="row">
@@ -102,6 +124,15 @@ $("#btn-1").click(function(e) {
     body: "Hello World!"
   });
   modal.render();
+});
+
+// Modal with postRender
+$("#btn-2").click(function(e) {
+  new Backbone.ModalView({
+    postRender: function() {
+      this.$body.append("&lt;h1&gt;Hello World!&lt;/h1&gt;");
+    }
+  }).render();
 });
 
 // Modal dialog with custom buttons, events and postRender function
@@ -137,9 +168,30 @@ var MyModal = Backbone.ModalView.extend({
     console.log("Modal hidden");
   }
 });
-$("#btn-2").click(function(e) {
+$("#btn-3").click(function(e) {
   new MyModal().render();
 });
+
+// Modal with static backdrop
+// Work with Bootstrap 2.3 and 3
+$("#btn-4").click(function(e) {
+  var modal = new Backbone.ModalView({
+    title: "Static backdrop",
+    body: "Hello World!",
+    backdrop: 'static'
+  });
+  modal.render();
+});
+
+$("#btn-5").click(function(e) {
+  var modal = new Backbone.ModalView({
+    model: new Backbone.Model({title: "Hello", name: "Example"}),
+    title: "&lt;h3&gt;&lt;%=title%&gt;&lt;/h3&gt;",
+    body: "Hello, &lt;%=name%&gt;!",
+  });
+  modal.render();
+});
+
 </pre>
         </div>
       </div>
@@ -167,9 +219,79 @@ Backbone.ModalView.prototype.className = "modal hide backbone-modal";
       </div>
       <br/>
 
+      <!-- Backbone Shiftable Collection View -->
+      <div class="row">
+        <div class="col-md-12">
+          <h1 id="ShiftableCollectionView">Backbone.ShiftableCollectionView</h1>
+          <p>
+            A ShiftableCollectionView displays a collection of models. Adds buttons to shift models left and right (or top and bottom), and to remove a model. The view consists of a collection element with class <code>shiftable-collection</code>, containing item elements with class <code>shiftable-collection-item</code>. To use, subclass and define your own template see example below).
+          </p>
+          <p>
+            Included are optional styling files (CSS and LESS) to properly position the action buttons. These are:
+          </p>
+          <ul>
+            <li><strong>CSS</strong>: <code>src/backbone-shiftable-collection.css</code></li>
+            <li><strong>LESS</strong>: <code>src/backbone-shiftable-collection.less</code></li>
+          </ul>
+          <h2>Example</h2>
+          <div id="shiftable-collection-example" class="shiftable-collection row"></div>
+          <div class="row">
+            <div class="col-md-6">
+              <h2>Code</h2>
+<pre>
+var ImageGallery = Backbone.ShiftableCollectionView.extend({
+  template: _.template([
+    '&lt;div class="col-md-2 shiftable-collection-item"&gt;',
+    '  &lt;img src="&lt;%=image%&gt;" alt="&lt;%=name%&gt;" /&gt;',
+    '  &lt;br/&gt;',
+    '  &lt;span&gt;&lt;%=name%&gt;&lt;/span&gt;',
+    '  &lt;a href="#" class="action delete"&gt;&times;&lt;/a&gt;',
+    '  &lt;a href="#" class="action move-left"&gt;&#8592;&lt;/a&gt;',
+    '  &lt;a href="#" class="action move-right"&gt;&#8594;&lt;/a&gt;',
+    '&lt;/div&gt;'
+  ].join("\n"))
+});
+var images = new Backbone.Collection([
+  {name: "Mario", image: "img/mario.png"},
+  {name: "Luigi", image: "img/luigi.png"},
+  {name: "Princess", image: "img/princess.png"},
+  {name: "Yoshi", image: "img/yoshi.png"}
+]);
+var imageGallery = new ImageGallery({
+  collection: images,
+  el: $("#shiftable-collection-example")
+}).render();
+</pre>
+            </div>
+            <div class="col-md-6">
+              <h2>CSS</h2>
+<pre>
+.shiftable-collection-item {
+  padding: 10px;
+  text-align: center;
+  height: 160px;
+  border: 1px solid #999;
+  margin-right: 10px;
+}
+.shiftable-collection-item:hover, .shiftable-collection-item.selected {
+  background-color: #ddd;
+}
+.shiftable-collection img {
+  max-width: 100%;
+  max-height: 100px;
+}
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backbone Form View -->
       <div class="row">
         <div class="col-md-12">
           <h1 id="FormView">Backbone.FormView</h1>
+          <p>
+            <span class="label label-danger">Deprecated</span> Backbone.FormView was replaced by <a href="http://amiliaapp.github.io/backform/">Backform</a>.
+          </p>
           <p>
             A FormView is a Backbone View which shows a form to edit the bound Backbone Model.
             Changes made by the user are directly applied back to the Backbone Model.
@@ -178,15 +300,18 @@ Backbone.ModalView.prototype.className = "modal hide backbone-modal";
           <p>
             The form markup is that of <a href="http://getbootstrap.com/css/#forms" target="_blank">Bootstrap form</a>.
             The form uses the horizontal layout (class <code>form-horizontal</code>).
-            Each model attribute is represented by a <code>control-group</code> DIV.
+            Each model attribute is represented by a <code>form-group</code> DIV (<code>control-group</code> in Bootstrap 2.3).
             Control types currently supported are text INPUT and SELECT.
           </p>
           <p>
-            In addition to Backbone View options, FormView takes these extra options:
+            FormView takes these options:
             <ul>
+              <li><strong>model</strong>: The model containing the form data, one per attribute.</li>
               <li><strong>schema</strong>: Schema defining which attributes to edit, and what controls to use. See below.</li>
               <li><strong>field</strong>: Optional. If set, will override default field options (see below).</li>
+              <li><strong>errorModel</strong>: Optional. If set, will be used to add inline error help blocks besides the erroneous form control.</li>
             </ul>
+            In addition, you can pass any other option supported by Backbone.View.
           </p>
           <p>
             Option <code>schema</code> defines which model attributes will be edited. The schema is a list of field objects.
@@ -199,16 +324,23 @@ Backbone.ModalView.prototype.className = "modal hide backbone-modal";
                 <strong>control</strong>: Type of input control. Supported controls are:
                 <ul>
                   <li><strong>input</strong>: Text INPUT.</li>
+                  <li><strong>booleanInput</strong>: Single checkbox INPUT for Boolean fields. When checked, will set model attribute to true, false otherwise.</li>
                   <li><strong>uneditableInput</strong>: An uneditable input.</li>
                   <li><strong>select</strong>: SELECT. Set <strong>options</strong> to specific OPTION elements.</li>
+                  <li><strong>radioInput</strong>: INPUT[TYPE=RADIO]. Set <strong>options</strong> to specific input elements.</li>
                   <li><strong>spacer</strong>: An empty space.</li>
+                  <li><strong>textarea</strong>: TEXTAREA.</li>
+                  <li><strong>datepicker</strong>: INPUT bound with a <a href="http://www.eyecon.ro/bootstrap-datepicker/?utm_source=twitterfeed&utm_medium=twitter" target="_blank">Bootstrap Datepicker</a>. Set <strong>options</strong> to pass datepicker options.</li>
                 </ul>
               </li>
-              <li><strong>options</strong>: Optional. For control <strong>select</strong>, list of option objects in the form: <code>{label:&lt;label&gt;, value:&lt;value&gt;}</code>.</li>
+              <li><strong>type</strong>: Optional. Input type. Defaults to <code>text</code>.</li>
+              <li><strong>disabled</strong>: Optional. Set to true to disabled the input or select.</li>
+              <li><strong>options</strong>: Optional. For controls <strong>select</strong> and <strong>radioInput</strong>, list of option objects in the form: <code>{label:&lt;label&gt;, value:&lt;value&gt;}</code>.</li>
               <li><strong>placeholder</strong>: Optional. Placeholder for an input control.</li>
-              <li><strong>className</strong>: Optional. Class to set on the <code>control-group</code> DIV.</li>
+              <li><strong>className</strong>: Optional. Class to set on the <code>form-group</code> DIV.</li>
               <li><strong>labelClassName</strong>: Optional. Class to control the width of labels. Defaults to <code>col-sm-4</code>.</li>
               <li><strong>controlsClassName</strong>: Optional. Class to control the width of form controls. Defaults to <code>col-sm-8</code>.</li>
+              <li><strong>controlClassName</strong>: Optional. Class to add to the input or select element.</li>
             </ul>
           </p>
           <h2>Size of form</h2>
@@ -247,8 +379,10 @@ var form = new Backbone.FormView({
 <pre>
 var person = {
   id: 101,
+  salutation: "Mr",
   firstName: "Andre",
   lastName: "Jones",
+  adult: true,
   address: {
     address1: "1751 rue Richardson",
     address2: "Suite 3.105",
@@ -265,6 +399,17 @@ var form = new Backbone.FormView({
   {name: "id", label: "Id", control: "uneditableInput"},
   {name: "firstName", label: "First Name", control: "input"},
   {name: "lastName", label: "Last Name", control: "input"},
+  {name: "adult", label: "Adult", control: "booleanInput"},
+  {
+    name: "salutation",
+    label: "Salutation",
+    control: "radioInput",
+    options: [
+      {label: "Mr.", value: "Mr"},
+      {label: "Mrs.", value: "Mrs"},
+      {label: "Mme.", value: "Mme"}
+    ]
+  },
   {control: "spacer"},
   {name: "address", nested: "address1", label: "Address1", control: "input"},
   {name: "address", nested: "address2", label: "Address2", control: "input"},
@@ -290,7 +435,8 @@ var form = new Backbone.FormView({
       {label: "Saskatchewan", value: "SK"},
       {label: "Yukon", value: "YT"}
     ]
-  }]
+  },
+  {name: "lifeGoal", label: "Life goal", control: "textarea"}]
 });
 form.render();
 
@@ -299,6 +445,53 @@ function updateObject() {
 }
 person.on("change", updateObject);
 updateObject();
+</pre>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <h2>Form Validation</h2>
+          <p>
+            Backbone.FormView accepts an optional <code>errorModel</code>. It contains the same attributes as the original <code>model</code> but with error messages as values. Backbone.FormView will automatically listen for changes on the <code>errorModel</code> to display the errors. You need only set the invalid attribute with an appropriate error message and for it to be displayed.
+          </p>
+          <p>
+            This is useful for back-end validation. In the case of an error, your back-end need only return a hash of attributes and their errors to be set on the <code>errorModel</code> to inform the user what to correct.
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <form id="form2" class="form-horizontal"></form>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <h2>Code</h2>
+<pre>
+var model = new Backbone.Model({a: 101}),
+    errorModel = new Backbone.Model();
+
+var form2 = new Backbone.FormView({
+  el: "#form2",
+  model: model,
+  errorModel: errorModel,
+  schema: [{name: "a", label: "Choose a number between 10 and 20. Press Enter to submit the form.", control: "input"}]
+});
+form2.render()
+
+$("#form2").on("submit", function(e) {
+  e.preventDefault();
+
+  errorModel.clear();
+
+  var number = parseFloat(model.get("a"), 10);
+  if (isNaN(number))
+    errorModel.set({a: "Not a number!"});
+  else if (number &lt;= 10 || number &gt;= 20)
+    errorModel.set({a: "Must be between 10 and 20"})
+
+  return false;
+});
 </pre>
         </div>
       </div>
@@ -317,45 +510,91 @@ updateObject();
 Backbone.FormView.prototype.templates = {
   input: _.template([
     '&lt;div class="control-group &lt;%=className%&gt;"&gt;',
-    '  &lt;label class="control-label"&gt;&lt;%=label%&gt;&lt;/label&gt;',
-    '  &lt;div class="controls"&gt;',
-    '    &lt;input type="text" class="input-&lt;%=inputSize%&gt;" name="&lt;%=name%&gt;" data-nested="&lt;%=nested%&gt;" value="&lt;%=value%&gt;" placeholder="&lt;%=placeholder%&gt;" /&gt;',
+    '  &lt;label class="control-label &lt;%=labelClassName%&gt;"&gt;&lt;%-label%&gt;&lt;/label&gt;',
+    '  &lt;div class="controls &lt;%=controlsClassName%&gt;"&gt;',
+    '    &lt;input type="&lt;%=type%&gt;" class="input-&lt;%=inputSize%&gt; &lt;%=controlClassName%&gt;" name="&lt;%=name%&gt;" data-nested="&lt;%=nested%&gt;" value="&lt;%-value%&gt;" placeholder="&lt;%-placeholder%&gt;" /&gt;',
+    '  &lt;/div&gt;',
+    '&lt;/div&gt;'
+  ].join("\n")),
+  booleanInput: _.template([
+    '&lt;div class="control-group &lt;%=className%&gt;"&gt;',
+    '  &lt;label class="control-label &lt;%=labelClassName%&gt;"&gt;&lt;/label&gt;',
+    '  &lt;div class="controls &lt;%=controlsClassName%&gt;"&gt;',
+    '    &lt;label class="checkbox inline"&gt;',
+    '      &lt;input type="checkbox" class="input-&lt;%=inputSize%&gt; &lt;%=controlClassName%&gt;" name="&lt;%=name%&gt;" data-nested="&lt;%=nested%&gt;" value="&lt;%-value%&gt;" /&gt; &lt;%-label%&gt;',
+    '    &lt;/label&gt;',
     '  &lt;/div&gt;',
     '&lt;/div&gt;'
   ].join("\n")),
   uneditableInput: _.template([
     '&lt;div class="control-group &lt;%=className%&gt;"&gt;',
-    '  &lt;label class="control-label"&gt;&lt;%=label%&gt;&lt;/label&gt;',
-    '  &lt;div class="controls"&gt;',
-    '    &lt;span class="uneditable-input input-&lt;%=inputSize%&gt;"&gt;&lt;%=value%&gt;&lt;/span&gt;',
+    '  &lt;label class="control-label &lt;%=labelClassName%&gt;"&gt;&lt;%-label%&gt;&lt;/label&gt;',
+    '  &lt;div class="controls &lt;%=controlsClassName%&gt;"&gt;',
+    '    &lt;span class="uneditable-input input-&lt;%=inputSize%&gt; &lt;%=controlClassName%&gt;"&gt;&lt;%-value%&gt;&lt;/span&gt;',
     '  &lt;/div&gt;',
     '&lt;/div&gt;'
   ].join("\n")),
   spacer: _.template([
     '&lt;div class="control-group &lt;%=className%&gt;"&gt;',
-    '  &lt;label class="control-label"&gt;&nbsp;&lt;/label&gt;',
-    '  &lt;div class="controls"&gt;&lt;/div&gt;',
+    '  &lt;label class="control-label &lt;%=labelClassName%&gt;"&gt;&nbsp;&lt;/label&gt;',
+    '  &lt;div class="controls &lt;%=controlsClassName%&gt;"&gt;&lt;/div&gt;',
     '&lt;/div&gt;'
   ].join("\n")),
   select: _.template([
     '&lt;div class="control-group &lt;%=className%&gt;"&gt;',
-    '  &lt;label class="control-label"&gt;&lt;%=label%&gt;&lt;/label&gt;',
-    '  &lt;div class="controls"&gt;',
-    '    &lt;select type="text" class="input-&lt;%=inputSize%&gt;" name="&lt;%=name%&gt;" data-nested="&lt;%=nested%&gt;" value="&lt;%=value%&gt;" placeholder="&lt;%=placeholder%&gt;"&gt;',
+    '  &lt;label class="control-label &lt;%=labelClassName%&gt;"&gt;&lt;%-label%&gt;&lt;/label&gt;',
+    '  &lt;div class="controls &lt;%=controlsClassName%&gt;"&gt;',
+    '    &lt;select class="input-&lt;%=inputSize%&gt; &lt;%=controlClassName%&gt;" name="&lt;%=name%&gt;" data-nested="&lt;%=nested%&gt;" value="&lt;%-value%&gt;" placeholder="&lt;%-placeholder%&gt;"&gt;',
     '      &lt;% for (var i=0; i &lt; options.length; i++) { %&gt;',
     '        &lt;% var option = options[i]; %&gt;',
-    '        &lt;option value="&lt;%=option.value%&gt;" &lt;%=option.value == value ? "selected=\'selected\'" : ""%&gt;&gt;&lt;%=option.label%&gt;&lt;/option&gt;',
+    '        &lt;option value="&lt;%-option.value%&gt;" &lt;%=option.value == value ? "selected=\'selected\'" : ""%&gt;&gt;&lt;%-option.label%&gt;&lt;/option&gt;',
     '      &lt;% } %&gt;',
     '    &lt;/select&gt;',
+    '  &lt;/div&gt;',
+    '&lt;/div&gt;'
+  ].join("\n")),
+  radioInput: _.template([
+    '&lt;div class="control-group &lt;%=className%&gt;"&gt;',
+    '  &lt;label class="control-label &lt;%=labelClassName%&gt;"&gt;&lt;%-label%&gt;&lt;/label&gt;',
+    '  &lt;div class="controls &lt;%=controlsClassName%&gt;"&gt;',
+    '    &lt;% for (var i=0; i &lt; options.length; i++) { %&gt;',
+    '      &lt;% var option = options[i]; %&gt;',
+    '      &lt;label class="radio inline"&gt;',
+    '        &lt;input type="radio" class="form-control &lt;%=controlClassName%&gt;" name="&lt;%=name%&gt;" data-nested="&lt;%=nested%&gt;" value="&lt;%-option.value%&gt;" placeholder="&lt;%-placeholder%&gt;" /&gt;',
+    '        &lt;%=option.label%&gt;',
+    '      &lt;/label&gt;',
+    '    &lt;% } %&gt;',
+    '  &lt;/div&gt;',
+    '&lt;/div&gt;'
+  ].join("\n")),
+  textarea: _.template([
+    '&lt;div class="control-group &lt;%=className%&gt;"&gt;',
+    '  &lt;label class="control-label &lt;%=labelClassName%&gt;"&gt;&lt;%-label%&gt;&lt;/label&gt;',
+    '  &lt;div class="controls &lt;%=controlsClassName%&gt;"&gt;',
+    '    &lt;textarea class="input-&lt;%=inputSize%&gt; &lt;%=controlClassName%&gt;" name="&lt;%=name%&gt;" data-nested="&lt;%=nested%&gt;" placeholder="&lt;%-placeholder%&gt;"&gt;&lt;%-value%&gt;&lt;/textarea&gt;',
+    '  &lt;/div&gt;',
+    '&lt;/div&gt;'
+  ].join("\n")),
+  datepicker: _.template([
+    '&lt;div class="control-group &lt;%=className%&gt;"&gt;',
+    '  &lt;label class="control-label &lt;%=labelClassName%&gt;"&gt;&lt;%-label%&gt;&lt;/label&gt;',
+    '  &lt;div class="controls &lt;%=controlsClassName%&gt;"&gt;',
+    '    &lt;input type="&lt;%=type%&gt;" class="input-&lt;%=inputSize%&gt; datepicker &lt;%=controlClassName%&gt;" name="&lt;%=name%&gt;" data-nested="&lt;%=nested%&gt;" value="&lt;%-value%&gt;" placeholder="&lt;%-placeholder%&gt;" /&gt;',
     '  &lt;/div&gt;',
     '&lt;/div&gt;'
   ].join("\n"))
 };
 Backbone.FormView.prototype.field.inputSize = "xlarge";
+Backbone.FormView.prototype.groupClassName = "control-group";
+Backbone.FormView.prototype.errorClassName = "error";
+Backbone.FormView.prototype.helpClassName = "help-inline";
 </pre>
         </div>
       </div>
       <br/>
+
+
+    </div>
     <br/>
 
     <footer class="navbar navbar-default">
@@ -363,6 +602,6 @@ Backbone.FormView.prototype.field.inputSize = "xlarge";
         <p class="navbar-text navbar-right">Written by <a href="http://martindrapeau.tumblr.com/">Martin Drapeau</a></p>
         <p class="navbar-text navbar-right">&nbsp;</p>
     </footer>
-    <a href="https://github.com/AmiliaApp/backgrid-object-cell"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+    <a href="https://github.com/AmiliaApp/backbone-bootstrap-widgets"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
   </body>
 </html>

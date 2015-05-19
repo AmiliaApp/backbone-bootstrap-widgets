@@ -32,13 +32,17 @@
     },
     defaults: {
       title: "<h3>Info</h3>",
+      backdrop: true,
       body: "",
       buttons: [{
         className: "btn-primary",
         href: "#",
         label: "Close",
         close: true
-      }]
+      }],
+      postRender: function() {
+        return this;
+      }
     },
     initialize: function(options) {
       options || (options = {});
@@ -47,12 +51,15 @@
       _.bindAll(this, "close");
     },
     render: function() {
+      var data = this.model ? this.model.toJSON() : {};
+
       var view = this;
 
       this.$el.html(this.template({
-        title: this.title,
-        body: this.body
+        title: _.template(this.title)(data),
+        body: _.template(this.body)(data)
       }));
+
       this.$header = this.$el.find('.modal-header');
       this.$body = this.$el.find('.modal-body');
       this.$footer = this.$el.find('.modal-footer');
@@ -65,42 +72,29 @@
       });
 
       this.$el.modal({
-        keyboard: false
+        keyboard: false,
+        backdrop: this.backdrop
       });
 
       this.$header.find("a.close").click(view.close);
-      $('.modal-backdrop').off().click(view.close);
+
+      if(this.backdrop === true) {
+        $('.modal-backdrop').off().click(view.close);
+      }
 
       this.postRender();
 
       return this;
     },
-    postRender: function() {
-      return this;
-    },
     close: function(e) {
       if (e) e.preventDefault();
       var view = this;
+      this.trigger("close", this);
       setTimeout(function() {
         view.$el.modal("hide");
         view.remove();
       }, 25);
     }
   });
-
-  /**
-    Bootstrap 2.3 use requires changes in HTML markup.
-    
-    Backbone.ModalView.prototype.template = _.template([
-      '<div class="modal-header">',
-      '  <a type="button" class="close" aria-hidden="true">&times;</a>',
-      '  <%=title%>',
-      '</div>',
-      '<div class="modal-body"><%=body%></div>',
-      '<div class="modal-footer"></div>'
-    ].join("\n"));
-    Backbone.ModalView.prototype.className = "modal hide backbone-modal";
-
-  */
 
 }).call(this);

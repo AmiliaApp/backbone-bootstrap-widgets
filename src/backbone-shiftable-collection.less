@@ -1,0 +1,54 @@
+.shiftable-collection {
+ 	.shiftable-collection-item {
+		position: relative;
+		.action {
+			display:none;
+			position: absolute;
+			font-size: 30px;
+			font-weight: bold;
+			color: #969696;
+			text-decoration: none;
+			padding: 4px 12px;
+
+			&.delete {
+				right: 0;
+				top: 0;
+				&:hover {
+					color: #600;
+				}
+			}
+
+			&.move-left {
+				left: 0;
+				bottom: 0;
+				&:hover {
+					color: #000;
+				}
+			}
+
+			&.move-right {
+				right: 0;
+				bottom: 0;
+				&:hover {
+					color: #000;
+				}
+			}
+		}
+
+		&:hover, &.selected {
+			cursor: pointer;
+			text-decoration: none;
+			border-color: #46aaf8;
+			.action {
+				display: block;
+			}
+		}
+ 	}
+
+	:first-child .action.move-left {
+		display: none!important;
+	}
+	:last-child .action.move-right {
+		display: none!important;
+	}
+}
