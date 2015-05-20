@@ -14,7 +14,7 @@
     "type": "git",
     "url": "https://github.com/amiliaapp/backbone-bootstrap-widgets"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "keywords": [
     "backbone",
     "bootstrap",
@@ -30,9 +30,6 @@
     "src/backbone-shiftable-collection.js", "src/backbone-shiftable-collection.css", "src/backbone-shiftable-collection.less",
     "src/backbone-form.js"
   ],
-  "license": []
-    "type": "MIT",
-    "url": "https://github.com/AmiliaApp/backbone-bootstrap-widgets/blob/gh-pages/LICENSE"
-  },
+  "license": "MIT",
   "readme": "Series of widgets implemented as Backbone Views wrapping Bootstrap plugins.\n- ModalView creates a Backbone View wrapping a Bootstrap modal dialog. You can fill in the moal body in the render function.\n- ShiftableCollectionView creates a Backbone View wrapping a Backbone Collection. Allows you to shift models left and right to reorder, and to remove models.\n- FormView creates a Backbone View using Bootstrap form markup and styling. Implements bindings to update the Backbone Model based on DOM changes made by the user. (Deprecated Replaced by Backform)"
 }
