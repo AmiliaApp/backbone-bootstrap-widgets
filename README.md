@@ -11,13 +11,13 @@ http://amiliaapp.github.io/backbone-bootstrap-widgets/
 With npm
 
 ```bash
-    npm install backbone-bootstrap-widgets --save
+npm install backbone-bootstrap-widgets --save
 ```
 
 With bower
 
 ```bash
-    bower install backbone-bootstrap-widgets --save
+bower install backbone-bootstrap-widgets --save
 ```
 
 * * *
